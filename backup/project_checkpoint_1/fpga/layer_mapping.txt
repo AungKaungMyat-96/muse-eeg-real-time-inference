@@ -1,0 +1,51 @@
+FPGA Layer Mapping
+
+Model: stroke_eeg_cnn_model_no_bn.keras
+
+Input:
+- Shape: (3000, 2)
+- Data type: float32 in software
+- Quantized target: int8 or int16 for FPGA
+
+Layer 1: Conv1D
+- Weight shape: (7, 2, 16)
+- Bias shape: (16,)
+- Kernel size: 7
+- Input channels: 2
+- Output filters: 16
+
+Layer 2: MaxPooling1D
+- Pool size: 2
+
+Layer 3: Conv1D
+- Weight shape: (5, 16, 32)
+- Bias shape: (32,)
+- Kernel size: 5
+- Input channels: 16
+- Output filters: 32
+
+Layer 4: MaxPooling1D
+- Pool size: 2
+
+Layer 5: Conv1D
+- Weight shape: (3, 32, 64)
+- Bias shape: (64,)
+- Kernel size: 3
+- Input channels: 32
+- Output filters: 64
+
+Layer 6: GlobalAveragePooling1D
+- Output shape: (64,)
+
+Layer 7: Dense
+- Weight shape: (64, 32)
+- Bias shape: (32,)
+
+Layer 8: Dense
+- Weight shape: (32, 2)
+- Bias shape: (2,)
+
+Final Output:
+- 2 classes
+- Class 0 = Normal
+- Class 1 = Stroke-like

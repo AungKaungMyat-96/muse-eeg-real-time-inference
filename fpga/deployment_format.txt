@@ -1,0 +1,22 @@
+Model Deployment Format
+
+Model type: CNN-1D
+Model file: stroke_eeg_cnn_model.keras
+
+Expected input:
+- Shape: (3000, 2)
+- Type: float32
+- Channels: AF7, AF8
+- Sampling rate: 100 Hz
+- Window length: 30 seconds
+
+Live runtime:
+- Muse stream rate: ~256 Hz
+- Channel selection: AF7 and AF8
+- Resampling: 256 Hz -> 100 Hz
+- Sliding inference interval: 5 seconds
+
+Future FPGA deployment target:
+- Quantized input format: int8 or int16
+- Fixed-size input buffer
+- CNN inference pipeline on FPGA

@@ -1,0 +1,32 @@
+Conv1 FPGA Hardware Plan
+
+Target block:
+- Conv1D layer 1 only
+
+Input:
+- sample_input_int8.txt
+- Shape: (3000, 2)
+- Type: int8
+
+Weights:
+- conv1_weights_int8.txt
+- Shape: (7, 2, 16)
+- Type: int8
+
+Output:
+- conv1_output_int32.txt
+- Shape: (3000, 16)
+- Type: int32
+
+Operation:
+- 1D convolution
+- stride = 1
+- padding = same
+- no activation inside first test module
+
+Validation method:
+- Run FPGA Conv1 module
+- Compare FPGA output against conv1_output_int32.txt
+- If matched, add ReLU
+- Then compare against conv1_relu_output_float reference
+- Then add MaxPool

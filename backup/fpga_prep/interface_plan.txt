@@ -1,0 +1,33 @@
+FPGA Interface Plan
+
+Input source:
+- Muse 2 EEG processed on PC
+- AF7 and AF8 selected
+- Resampled to 100 Hz
+- 30-second window
+- Final input shape: (3000, 2)
+
+Test vector files:
+- sample_input_float.npy
+- sample_input_float.txt
+- sample_input_int8.npy
+- sample_input_int8.txt
+- sample_input_scale.txt
+
+Weight files:
+- Conv1D and Dense layer weights stored in fpga/weights
+
+Planned FPGA input format:
+- Flattened stream of 3000 x 2 values
+- Quantized int8 or int16 values
+- Loaded from file or sent from PC
+
+Planned FPGA output format:
+- Two output scores or probabilities
+- Final predicted class:
+  - 0 = Normal
+  - 1 = Stroke-like
+
+Comparison method:
+- Use same sample_input_int8.txt on PC and FPGA
+- Compare FPGA output class against software output
