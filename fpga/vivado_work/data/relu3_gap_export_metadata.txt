@@ -1,0 +1,22 @@
+timestamp_utc: 2026-05-26T07:47:42.914906Z
+source_conv3_mem: D:/Users/Lenovo/project_1/muse_cnn_sources/data/conv3_expected_int32.mem
+dest_relu3_mem: D:/Users/Lenovo/project_1/muse_cnn_sources/data/relu3_expected_int32.mem
+dest_gap_mem: D:/Users/Lenovo/project_1/muse_cnn_sources/data/gap_expected_int32.mem
+input_shape: (750, 64)
+relu3_shape: (750, 64)
+gap_shape: (64,)
+input_count: 48000
+relu3_count: 48000
+gap_count: 64
+relu3_min: 0
+relu3_max: 0
+relu3_sum: 0
+gap_min: 0
+gap_max: 0
+gap_sum: 0
+relu_rule: relu3[t,f] = max(0, conv3[t,f])
+gap_rule: gap[f] = trunc_toward_zero(sum_t(relu3[t,f]) / 750)
+gap_rounding: signed truncating integer division toward zero
+flatten_relu3: for t in range(750): for f in range(64): write value
+flatten_gap: for f in range(64): write value
+format: decimal signed integer, one value per line, no commas, no brackets

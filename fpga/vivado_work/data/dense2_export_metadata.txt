@@ -1,0 +1,42 @@
+timestamp_utc: 2026-05-26T10:02:44.349998Z
+source_input_mem: D:/Users/Lenovo/project_1/muse_cnn_sources/data/dense1_relu_expected_int32.mem
+source_weight_float: C:/Users/Lenovo/Documents/muse-eeg-real-time-inference/fpga/weights/dense_5_w0.npy
+source_bias_float: C:/Users/Lenovo/Documents/muse-eeg-real-time-inference/fpga/weights/dense_5_w1.npy
+weight_source_used: C:/Users/Lenovo/Documents/muse-eeg-real-time-inference/fpga/weights/dense_5_w0.npy
+weight_rule: int8_from_float_round_then_clip_to_minus128_127
+bias_source_used: none
+bias_rule: zero_bias_placeholder_for_raw_integer_dense2_alignment
+dest_input_mem: D:/Users/Lenovo/project_1/muse_cnn_sources/data/dense2_input.mem
+dest_weight_mem: D:/Users/Lenovo/project_1/muse_cnn_sources/weights/dense2_w.mem
+dest_bias_mem: D:/Users/Lenovo/project_1/muse_cnn_sources/weights/dense2_b.mem
+dest_expected_mem: D:/Users/Lenovo/project_1/muse_cnn_sources/data/dense2_expected_int32.mem
+input_shape: (32,)
+weights_shape: (32, 2)
+bias_shape: (2,)
+expected_shape: (2,)
+input_dtype: int32
+weights_dtype: int8
+bias_dtype: int32
+expected_dtype: int32
+input_count: 32
+weights_count: 64
+bias_count: 2
+expected_count: 2
+input_min: 0
+input_max: 0
+input_sum: 0
+weights_min: -1
+weights_max: 1
+weights_sum: 5
+bias_min: 0
+bias_max: 0
+bias_sum: 0
+expected_min: 0
+expected_max: 0
+expected_sum: 0
+activation_in_expected: none_raw_dense2_logits_no_softmax
+flatten_input: for i in range(32): write input[i]
+flatten_weights: for c in range(2): for i in range(32): write w[i,c]
+flatten_bias: for c in range(2): write b[c]
+flatten_expected: for c in range(2): write y[c]
+format: decimal signed integer, one value per line, no commas, no brackets

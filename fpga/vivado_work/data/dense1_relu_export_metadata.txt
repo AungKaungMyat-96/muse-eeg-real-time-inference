@@ -1,0 +1,10 @@
+timestamp_utc: 2026-05-26T09:15:06.804548Z
+source_dense1_raw_mem: D:/Users/Lenovo/project_1/muse_cnn_sources/data/dense1_expected_int32.mem
+dest_dense1_relu_mem: D:/Users/Lenovo/project_1/muse_cnn_sources/data/dense1_relu_expected_int32.mem
+input_count: 32
+output_count: 32
+relu_min: 0
+relu_max: 0
+relu_sum: 0
+rule: dense1_relu[o] = max(0, dense1_raw[o])
+format: decimal signed integer, one value per line, no commas, no brackets

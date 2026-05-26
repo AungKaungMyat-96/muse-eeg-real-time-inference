@@ -1,0 +1,22 @@
+timestamp_utc: 2026-05-25T15:53:51.601561Z
+source_conv1_output_int32: C:\Users\Lenovo\Documents\muse-eeg-real-time-inference\fpga\test_vectors\conv1_output_int32.npy
+dest_relu_mem: D:\Users\Lenovo\project_1\muse_cnn_sources\data\relu1_expected_int32.mem
+dest_maxpool_mem: D:\Users\Lenovo\project_1\muse_cnn_sources\data\maxpool1_expected_int32.mem
+input_shape: (3000, 16)
+input_dtype: int32
+relu_shape: (3000, 16)
+relu_dtype: int32
+maxpool_shape: (1500, 16)
+maxpool_dtype: int32
+relu_count: 48000
+maxpool_count: 24000
+relu_min: 0
+relu_max: 26892
+relu_sum: 61857861
+maxpool_min: 0
+maxpool_max: 26892
+maxpool_sum: 42158423
+relu_rule: relu[t,f] = max(0, conv1_output_int32[t,f])
+maxpool_rule: maxpool[t,f] = max(relu[2*t,f], relu[2*t+1,f])
+flatten_order: for t: for f: write value
+format: decimal signed integer, one value per line, no commas, no brackets

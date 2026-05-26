@@ -1,0 +1,39 @@
+timestamp_utc: 2026-05-25T12:41:04.985432Z
+source_input: C:\Users\Lenovo\Documents\muse-eeg-real-time-inference\fpga\test_vectors\sample_input_int8.npy
+source_weights: C:\Users\Lenovo\Documents\muse-eeg-real-time-inference\fpga\test_vectors\conv1_weights_int8.npy
+source_expected: C:\Users\Lenovo\Documents\muse-eeg-real-time-inference\fpga\test_vectors\conv1_output_int32.npy
+source_bias: none
+dest_input_mem: D:\Users\Lenovo\project_1\muse_cnn_sources\data\conv1d_input.mem
+dest_weights_mem: D:\Users\Lenovo\project_1\muse_cnn_sources\weights\conv1d_w.mem
+dest_bias_mem: D:\Users\Lenovo\project_1\muse_cnn_sources\weights\conv1d_b.mem
+dest_expected_mem: D:\Users\Lenovo\project_1\muse_cnn_sources\data\conv1d_expected_int32.mem
+input_shape: (3000, 2)
+weights_shape: (7, 2, 16)
+bias_shape: (16,)
+expected_shape: (3000, 16)
+input_dtype: int8
+weights_dtype: int8
+bias_dtype: int64
+expected_dtype: int32
+input_count: 6000
+weights_count: 224
+bias_count: 16
+expected_count: 48000
+input_min: -102
+input_max: 127
+input_sum: -5
+weights_min: -122
+weights_max: 127
+weights_sum: 22
+bias_min: 0
+bias_max: 0
+bias_sum: 0
+expected_min: -34844
+expected_max: 26892
+expected_sum: 12552
+bias_mode: zero_bias_placeholder_for_raw_mac_alignment
+flatten_input: for t in range(3000): for c in range(2): write input[t,c]
+flatten_weights: for f in range(16): for k in range(7): for c in range(2): write weights[k,c,f]
+flatten_bias: for f in range(16): write bias[f]
+flatten_expected: for t in range(3000): for f in range(16): write expected[t,f]
+format: decimal signed integer, one value per line, no commas, no brackets

@@ -1,0 +1,15 @@
+timestamp_utc: 2026-05-26T02:15:29.934234Z
+source_conv2_mem: D:/Users/Lenovo/project_1/muse_cnn_sources/data/conv2_expected_int32.mem
+dest_pool2_mem: D:/Users/Lenovo/project_1/muse_cnn_sources/data/pool2_expected_int32.mem
+input_shape: (1500, 32)
+output_shape: (750, 32)
+input_count: 48000
+output_count: 24000
+output_min: 0
+output_max: 0
+output_sum: 0
+rule: pool2[t,f] = max(conv2[2*t,f], conv2[2*t+1,f])
+pool_size: 2
+stride: 2
+flatten_order: for t in range(750): for f in range(32): write value
+format: decimal signed integer, one value per line, no commas, no brackets
