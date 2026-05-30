@@ -1,4 +1,5 @@
 import os
+import platform
 from typing import Optional, Tuple
 
 import numpy as np
@@ -12,9 +13,18 @@ MODEL_PATH = os.path.join(BASE_DIR, "models", "stroke_eeg_cnn_model.keras")
 X_TEST_PATH = os.path.join(BASE_DIR, "data", "X_test_eeg.npy")
 Y_TEST_PATH = os.path.join(BASE_DIR, "data", "y_test_eeg.npy")
 
-OUT_DIR = r"D:/Users/Lenovo/project_1/muse_cnn_sources/data"
+def _resolve_output_dir() -> str:
+    if platform.system().lower().startswith("win"):
+        return r"D:/Users/Lenovo/project_1/muse_cnn_sources/data"
+    return os.path.join(BASE_DIR, "fpga", "demo_exports")
+
+
+OUT_DIR = _resolve_output_dir()
 METADATA_PATH = os.path.join(OUT_DIR, "demo_samples_metadata.txt")
 INDEX_CACHE_PATH = os.path.join(OUT_DIR, "demo_samples_selected_indices.npz")
+
+PREFERRED_NORMAL_INDEX = 0
+PREFERRED_ABNORMAL_INDEX = 2
 
 
 def _class_name(class_id: int) -> str:
@@ -29,16 +39,37 @@ def _pick_correct_index(y_true: np.ndarray, y_pred: np.ndarray, target_class: in
 
 
 def _get_logits_if_available(model: tf.keras.Model, sample_input: np.ndarray) -> Optional[np.ndarray]:
-    logits_model: Optional[tf.keras.Model] = None
-    for layer in model.layers[::-1]:
-        if "dense" in layer.name.lower() and hasattr(layer, "activation"):
-            if getattr(layer.activation, "__name__", "") == "softmax":
-                logits_model = tf.keras.Model(inputs=model.input, outputs=layer.input)
-                break
-    if logits_model is None:
+    try:
+        logits_model: Optional[tf.keras.Model] = None
+        for layer in model.layers[::-1]:
+            if "dense" in layer.name.lower() and hasattr(layer, "activation"):
+                if getattr(layer.activation, "__name__", "") == "softmax":
+                    logits_model = tf.keras.Model(inputs=model.inputs, outputs=layer.input)
+                    break
+        if logits_model is None:
+            return None
+        logits = logits_model.predict(sample_input, verbose=0)[0]
+        return np.asarray(logits, dtype=np.float32)
+    except Exception as exc:
+        print(f"WARN: logits extraction unavailable: {exc}")
         return None
-    logits = logits_model.predict(sample_input, verbose=0)[0]
-    return np.asarray(logits, dtype=np.float32)
+
+
+def _pick_indices(y_true: np.ndarray, y_pred: np.ndarray) -> Tuple[int, int]:
+    def valid(idx: int, cls: int) -> bool:
+        return 0 <= idx < y_true.shape[0] and int(y_true[idx]) == cls and int(y_pred[idx]) == cls
+
+    if valid(PREFERRED_NORMAL_INDEX, 0):
+        idx_normal = PREFERRED_NORMAL_INDEX
+    else:
+        idx_normal = _pick_correct_index(y_true, y_pred, target_class=0)
+
+    if valid(PREFERRED_ABNORMAL_INDEX, 1):
+        idx_abnormal = PREFERRED_ABNORMAL_INDEX
+    else:
+        idx_abnormal = _pick_correct_index(y_true, y_pred, target_class=1)
+
+    return idx_normal, idx_abnormal
 
 
 def _infer_one(model: tf.keras.Model, sample: np.ndarray, true_label: int) -> Tuple[int, np.ndarray, float, Optional[np.ndarray]]:
@@ -63,12 +94,15 @@ def main() -> None:
     x_test = np.load(X_TEST_PATH)
     y_test = np.load(Y_TEST_PATH).astype(np.int32)
 
+    # Ensure model graph is built for safe intermediate model access.
+    warmup_input = prepare_model_input(np.asarray(x_test[0], dtype=np.float32))
+    _ = model(warmup_input, training=False)
+
     print("Running model over test set...")
     probs_all = np.asarray(model.predict(x_test, verbose=0), dtype=np.float32)
     pred_all = np.argmax(probs_all, axis=1).astype(np.int32)
 
-    idx_normal = _pick_correct_index(y_test, pred_all, target_class=0)
-    idx_abnormal = _pick_correct_index(y_test, pred_all, target_class=1)
+    idx_normal, idx_abnormal = _pick_indices(y_test, pred_all)
 
     print(f"Selected normal index   : {idx_normal}")
     print(f"Selected abnormal index : {idx_abnormal}")

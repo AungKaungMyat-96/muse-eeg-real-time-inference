@@ -1,4 +1,5 @@
 import os
+import platform
 from typing import Iterable, Tuple
 
 import numpy as np
@@ -12,10 +13,16 @@ MODEL_PATH = os.path.join(BASE_DIR, "models", "stroke_eeg_cnn_model.keras")
 X_TEST_PATH = os.path.join(BASE_DIR, "data", "X_test_eeg.npy")
 Y_TEST_PATH = os.path.join(BASE_DIR, "data", "y_test_eeg.npy")
 
-VIVADO_DATA_DIR = r"D:/Users/Lenovo/project_1/muse_cnn_sources/data"
-VIVADO_HEX_DIR = os.path.join(VIVADO_DATA_DIR, "hex")
-INDEX_CACHE_PATH = os.path.join(VIVADO_DATA_DIR, "demo_samples_selected_indices.npz")
-META_PATH = os.path.join(VIVADO_DATA_DIR, "demo_gap_export_metadata.txt")
+def _resolve_output_dir() -> str:
+    if platform.system().lower().startswith("win"):
+        return r"D:/Users/Lenovo/project_1/muse_cnn_sources/data"
+    return os.path.join(BASE_DIR, "fpga", "demo_exports")
+
+
+OUT_DIR = _resolve_output_dir()
+HEX_DIR = os.path.join(OUT_DIR, "hex")
+INDEX_CACHE_PATH = os.path.join(OUT_DIR, "demo_samples_selected_indices.npz")
+META_PATH = os.path.join(OUT_DIR, "demo_gap_export_metadata.txt")
 
 
 def _to_hex_i32(values: np.ndarray) -> np.ndarray:
@@ -66,14 +73,14 @@ def _make_feature_models(model: tf.keras.Model) -> Tuple[tf.keras.Model, tf.kera
         raise RuntimeError("Could not find GlobalAveragePooling1D layer in model")
     if dense2_softmax_layer is None:
         raise RuntimeError("Could not find final Dense softmax layer in model")
-    gap_model = tf.keras.Model(inputs=model.input, outputs=gap_layer.output)
-    logits_model = tf.keras.Model(inputs=model.input, outputs=dense2_softmax_layer.input)
+    gap_model = tf.keras.Model(inputs=model.inputs, outputs=gap_layer.output)
+    logits_model = tf.keras.Model(inputs=model.inputs, outputs=dense2_softmax_layer.input)
     return gap_model, logits_model
 
 
 def main() -> None:
-    os.makedirs(VIVADO_DATA_DIR, exist_ok=True)
-    os.makedirs(VIVADO_HEX_DIR, exist_ok=True)
+    os.makedirs(OUT_DIR, exist_ok=True)
+    os.makedirs(HEX_DIR, exist_ok=True)
 
     if not os.path.exists(INDEX_CACHE_PATH):
         raise FileNotFoundError(
@@ -87,6 +94,10 @@ def main() -> None:
     model = tf.keras.models.load_model(MODEL_PATH)
     x_test = np.load(X_TEST_PATH)
     y_test = np.load(Y_TEST_PATH).astype(np.int32)
+
+    # Ensure model graph is built for safe intermediate model access.
+    warmup_input = prepare_model_input(np.asarray(x_test[0], dtype=np.float32))
+    _ = model(warmup_input, training=False)
 
     gap_model, logits_model = _make_feature_models(model)
 
@@ -102,10 +113,15 @@ def main() -> None:
         logits = np.asarray(logits_model.predict(model_input, verbose=0)[0], dtype=np.float32)
         probs = np.asarray(model.predict(model_input, verbose=0)[0], dtype=np.float32)
         pred = int(np.argmax(probs))
+        true_label = int(y_test[idx])
+        if pred != true_label:
+            raise RuntimeError(
+                f"Selected index {idx} for {tag} is not correctly classified: true={true_label}, pred={pred}"
+            )
 
-        mem_path = os.path.join(VIVADO_DATA_DIR, f"{tag}_gap_expected_int32.mem")
-        hex_path = os.path.join(VIVADO_HEX_DIR, f"{tag}_gap_i32.hex")
-        raw_hex_path = os.path.join(VIVADO_HEX_DIR, f"{tag}_conv1d_input_i8.hex")
+        mem_path = os.path.join(OUT_DIR, f"{tag}_gap_expected_int32.mem")
+        hex_path = os.path.join(HEX_DIR, f"{tag}_gap_i32.hex")
+        raw_hex_path = os.path.join(HEX_DIR, f"{tag}_conv1d_input_i8.hex")
 
         _write_lines(mem_path, [str(int(x)) for x in gap_i32])
         gap_hex = _to_hex_i32(gap_i32)
